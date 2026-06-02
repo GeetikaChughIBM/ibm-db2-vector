@@ -1,0 +1,23 @@
+{
+  "name": "db2-embedding-ingestion",
+  "version": "1.0.0",
+  "description": "File ingestion with text splitting and embedding storage in DB2",
+  "main": "ingest-to-db2.js",
+  "scripts": {
+    "start": "node ingest-to-db2.js",
+    "test": "node test-pipeline.js"
+  },
+  "keywords": [
+    "db2",
+    "embeddings",
+    "ingestion",
+    "text-splitting"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "ibm_db": "^3.2.4",
+    "axios": "^1.7.2"
+  }
+}
