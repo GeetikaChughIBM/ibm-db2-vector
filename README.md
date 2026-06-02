@@ -13,7 +13,7 @@ A Node.js pipeline that ingests text files, splits them into chunks, generates e
 ## Prerequisites
 
 1. **Node.js** (v14 or higher)
-2. **IBM DB2** (v11.5.2 or higher with VECTOR support)
+2. **IBM DB2** (v12.1.2 or higher with VECTOR support)
 3. **Ollama** running locally at `http://localhost:11434`
 
 ### Installing Ollama
@@ -215,7 +215,7 @@ If you get connection errors to Ollama:
 ### VECTOR Datatype Not Supported
 
 If you get errors about VECTOR datatype:
-- Ensure you're using DB2 v11.5.2 or higher
+- Ensure you're using DB2 v12.1.2 or higher
 - VECTOR support must be enabled in your DB2 instance
 
 ## Example Output
