@@ -86,6 +86,7 @@ EMBEDDING_MODEL=nomic-embed-text:latest
 | `OLLAMA_URL` | Ollama API endpoint | `http://localhost:11434` |
 | `EMBEDDING_MODEL` | Ollama embedding model to use | `nomic-embed-text:latest` |
 | `TOP_K` | Number of top similar results to return | `5` |
+| `DISTANCE_METRIC` | Distance metric for similarity search (EUCLIDEAN, COSINE, DOT) | `EUCLIDEAN` |
 | `DB2_HOST` | DB2 server hostname | - |
 | `DB2_PORT` | DB2 server port | `50001` |
 | `DB2_DATABASE` | Database name | - |

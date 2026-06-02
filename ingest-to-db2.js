@@ -217,7 +217,7 @@ async function insertEmbeddings(conn, tableName, embeddings) {
         
         // Use VECTOR constructor: VECTOR('embeddingList', dimension, FLOAT32)
         const insertQuery = `
-            INSERT INTO ${tableName} 
+            INSERT INTO ${tableName}
             (TEXT_CONTENT, EMBEDDING)
             VALUES (?, VECTOR('${embeddingList}', ${vectorDimension}, FLOAT32))
         `;

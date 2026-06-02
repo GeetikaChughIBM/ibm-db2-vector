@@ -14,6 +14,7 @@ const CONFIG = {
     
     // Retrieval configuration
     topK: parseInt(process.env.TOP_K) || 5,
+    distanceMetric: process.env.DISTANCE_METRIC || 'EUCLIDEAN',
     
     // DB2 configuration
     db2: {
@@ -112,8 +113,8 @@ function closeConnection(conn) {
 /**
  * Search for similar chunks using vector similarity
  */
-async function searchSimilarChunks(conn, tableName, queryEmbedding, topK) {
-    console.log(`\nSearching for top ${topK} similar chunks...`);
+async function searchSimilarChunks(conn, tableName, queryEmbedding, topK, distanceMetric) {
+    console.log(`\nSearching for top ${topK} similar chunks using ${distanceMetric} distance...`);
     
     // Format embedding as array string for VECTOR constructor
     const embeddingList = `[${queryEmbedding.join(',')}]`;
@@ -121,11 +122,12 @@ async function searchSimilarChunks(conn, tableName, queryEmbedding, topK) {
     
     // Use VECTOR_DISTANCE for similarity search
     // Lower distance = more similar
+    // Supported metrics: EUCLIDEAN, COSINE, DOT_PRODUCT, etc.
     const searchQuery = `
-        SELECT 
+        SELECT
             ID,
             TEXT_CONTENT,
-            VECTOR_DISTANCE(EMBEDDING, VECTOR('${embeddingList}', ${vectorDimension}, FLOAT32)) AS DISTANCE
+            VECTOR_DISTANCE(EMBEDDING, VECTOR('${embeddingList}', ${vectorDimension}, FLOAT32), ${distanceMetric}) AS DISTANCE
         FROM ${tableName}
         ORDER BY DISTANCE ASC
         FETCH FIRST ${topK} ROWS ONLY
@@ -146,7 +148,7 @@ async function searchSimilarChunks(conn, tableName, queryEmbedding, topK) {
  */
 function displayResults(results) {
     console.log('\n' + '='.repeat(70));
-    console.log('📊 SEARCH RESULTS');
+    console.log('SEARCH RESULTS');
     console.log('='.repeat(70));
     
     if (results.length === 0) {
@@ -184,7 +186,7 @@ async function interactiveSearch(conn) {
     console.log('Enter your search queries. Type "exit" or "quit" to stop.\n');
     
     while (true) {
-        const query = await askQuestion('🔎 Enter search query: ');
+        const query = await askQuestion('Enter search query: ');
         
         if (query.toLowerCase() === 'exit' || query.toLowerCase() === 'quit') {
             console.log('\nExiting interactive search mode...');
@@ -210,7 +212,8 @@ async function interactiveSearch(conn) {
                 conn,
                 CONFIG.db2.table,
                 queryEmbedding,
-                CONFIG.topK
+                CONFIG.topK,
+                CONFIG.distanceMetric
             );
             
             // Display results
@@ -228,14 +231,14 @@ async function interactiveSearch(conn) {
 
 async function main() {
     console.log('='.repeat(70));
-    console.log('🔍 SEMANTIC SEARCH WITH DB2 VECTOR');
+    console.log('SEMANTIC SEARCH WITH DB2 VECTOR');
     console.log('='.repeat(70));
     
     let conn = null;
     
     try {
         // Connect to DB2
-        console.log(`\n🔌 Connecting to DB2...`);
+        console.log(`\nConnecting to DB2...`);
         console.log(`  Host: ${CONFIG.db2.host}`);
         console.log(`  Database: ${CONFIG.db2.database}`);
         console.log(`  Table: ${CONFIG.db2.table}`);
@@ -263,7 +266,8 @@ async function main() {
                 conn,
                 CONFIG.db2.table,
                 queryEmbedding,
-                CONFIG.topK
+                CONFIG.topK,
+                CONFIG.distanceMetric
             );
             
             // Display results
@@ -283,7 +287,7 @@ async function main() {
     } finally {
         // Close connection
         if (conn) {
-            console.log('\n🔌 Closing DB2 connection...');
+            console.log('\nClosing DB2 connection...');
             await closeConnection(conn);
             console.log('Connection closed');
         }
