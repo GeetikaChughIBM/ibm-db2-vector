@@ -85,6 +85,7 @@ EMBEDDING_MODEL=nomic-embed-text:latest
 | `CHUNK_OVERLAP` | Overlapping characters between chunks | `50` |
 | `OLLAMA_URL` | Ollama API endpoint | `http://localhost:11434` |
 | `EMBEDDING_MODEL` | Ollama embedding model to use | `nomic-embed-text:latest` |
+| `TOP_K` | Number of top similar results to return | `5` |
 | `DB2_HOST` | DB2 server hostname | - |
 | `DB2_PORT` | DB2 server port | `50001` |
 | `DB2_DATABASE` | Database name | - |
@@ -96,10 +97,14 @@ EMBEDDING_MODEL=nomic-embed-text:latest
 
 ## Usage
 
-Run the pipeline:
+### 1. Ingestion Pipeline
+
+Ingest and store text file embeddings:
 
 ```bash
 node ingest-to-db2.js
+# or
+npm start
 ```
 
 The script will:
@@ -109,6 +114,50 @@ The script will:
 4. ✅ Connect to DB2
 5. ✅ Create table if it doesn't exist
 6. ✅ Insert embeddings into DB2
+
+### 2. Semantic Search
+
+Search for similar content using natural language queries:
+
+**Interactive Mode:**
+```bash
+node retrieve-from-db2.js
+# or
+npm run search
+```
+
+This starts an interactive session where you can enter multiple queries:
+```
+🔎 Enter search query: What are vector databases?
+🔎 Enter search query: How does similarity search work?
+🔎 Enter search query: exit
+```
+
+**Single Query Mode:**
+```bash
+node retrieve-from-db2.js "What are vector databases?"
+# or
+npm run search "What are vector databases?"
+```
+
+**Search Results Format:**
+```
+======================================================================
+📊 SEARCH RESULTS
+======================================================================
+
+[1] ID: 3 | Distance: 0.234567
+----------------------------------------------------------------------
+Vector databases are specialized database systems designed to store
+and query high-dimensional vector embeddings efficiently...
+
+[2] ID: 7 | Distance: 0.345678
+----------------------------------------------------------------------
+Similarity search in vector databases uses distance metrics like
+cosine similarity or Euclidean distance...
+```
+
+Lower distance values indicate higher similarity to your query.
 
 ## DB2 Table Schema
 
@@ -126,13 +175,29 @@ CREATE TABLE TEST_SCRATCH_IBMDB (
 
 The `EMBEDDING` column uses DB2's native `VECTOR` datatype for efficient storage and similarity search.
 
-## Similarity Search
+## How It Works
 
-After ingesting your data, you can perform semantic similarity searches using DB2's `VECTOR_DISTANCE()` function:
+### Ingestion Pipeline
+
+1. **File Reading**: Reads text content from the specified file
+2. **Text Splitting**: Splits text into overlapping chunks for better context preservation
+3. **Embedding Generation**: Calls Ollama API to generate vector embeddings for each chunk
+4. **DB2 Storage**: Stores text chunks and their embeddings using DB2's native VECTOR datatype
+
+### Retrieval Pipeline
+
+1. **Query Embedding**: Generates embedding for your search query using Ollama
+2. **Vector Search**: Uses DB2's `VECTOR_DISTANCE()` function to find similar chunks
+3. **Result Ranking**: Returns top-K most similar results ordered by distance
+4. **Display**: Shows results with similarity scores and original text content
+
+### Direct SQL Search (Advanced)
+
+You can also perform searches directly using SQL:
 
 ```sql
 -- Find the 5 most similar chunks to a query embedding
-SELECT 
+SELECT
     ID,
     TEXT_CONTENT,
     VECTOR_DISTANCE(EMBEDDING, VECTOR('[0.1,0.2,0.3,...]', 768, FLOAT32)) AS DISTANCE
@@ -141,10 +206,7 @@ ORDER BY DISTANCE ASC
 FETCH FIRST 5 ROWS ONLY;
 ```
 
-### Getting Query Embeddings
-
-To get embeddings for your search queries, use Ollama:
-
+To get query embeddings manually:
 ```bash
 curl http://localhost:11434/api/embeddings -d '{
   "model": "nomic-embed-text:latest",

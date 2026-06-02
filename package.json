@@ -5,6 +5,7 @@
   "main": "ingest-to-db2.js",
   "scripts": {
     "start": "node ingest-to-db2.js",
+    "search": "node retrieve-from-db2.js",
     "test": "node test-pipeline.js"
   },
   "keywords": [
